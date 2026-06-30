@@ -33,11 +33,26 @@
 #include "ti_msp_dl_config.h"
 #include "oled.h"
 #include "gyro.h"
+#include "motor.h"
+#include "turn.h"
 #include "delay.h"
 
 /* ---- 显示参数 ---- */
 #define FONT_SIZE        16          /* 使用16像素字体 */
 #define DISPLAY_INTERVAL 100         /* 显示刷新间隔 (ms) */
+
+/* ---- 转弯测试参数 ---- */
+/*
+ * 主循环空闲迭代 ≈ 2~5 us/次 (无UART数据时)。
+ * 50,000 次 × 4 us ≈ 200 ms 用于显示刷新。
+ * 转弯间隔: 600,000 次 × 4 us ≈ 2.4 s。
+ */
+#define DISPLAY_LOOP_CNT   50000    /* 显示刷新迭代间隔 */
+#define TURN_INTERVAL_CNT 600000    /* 两次转弯之间的迭代间隔 (~2~3s) */
+
+/* ---- 测试阶段 ---- */
+static int       turn_count  = 0;   /* 已完成转弯次数 */
+static uint32_t  idle_timer  = 0;   /* 空闲计时器, 闲时递增 */
 
 /* ---- 内部辅助函数 ---- */
 
@@ -97,21 +112,33 @@ static void display_update(void)
 {
     float wz  = GYRO_GetWz();
     float yaw = GYRO_GetYaw();
+    bool busy = Turn_IsBusy();
 
     OLED_Clear();
 
-    /* ---- 第一行: Wz (Z轴角速度) ---- */
-    OLED_ShowString(0, 0, (u8 *)"W:", FONT_SIZE);
-    OLED_ShowSignedFloat(16, 0, wz, 4, 1, FONT_SIZE);
-    OLED_ShowString(104, 0, (u8 *)"d/s", FONT_SIZE);
+    /* ---- 第一行: Yaw (航向角) + 状态 ---- */
+    OLED_ShowString(0, 0, (u8 *)"Y:", FONT_SIZE);
+    OLED_ShowSignedFloat(16, 0, yaw, 3, 2, FONT_SIZE);
+    OLED_ShowChar(112, 0, 'd', FONT_SIZE);
 
-    /* ---- 第二行: Yaw (航向角) ---- */
-    OLED_ShowString(0, 24, (u8 *)"Y:", FONT_SIZE);
-    OLED_ShowSignedFloat(16, 24, yaw, 3, 2, FONT_SIZE);
-    OLED_ShowChar(112, 24, 'd', FONT_SIZE);
+    /* ---- 第二行: Wz (Z轴角速度) + 方向指示 ---- */
+    OLED_ShowString(0, 24, (u8 *)"W:", FONT_SIZE);
+    OLED_ShowSignedFloat(16, 24, wz, 4, 1, FONT_SIZE);
+    OLED_ShowString(104, 24, (u8 *)"d/s", FONT_SIZE);
 
-    /* ---- 第三行: 状态/提示 ---- */
-    OLED_ShowString(0, 48, (u8 *)"M0G3507 Gyro", 12);
+    /* ---- 第三行: 转弯次数 + 状态 ---- */
+    if (busy) {
+        OLED_ShowString(0, 48, (u8 *)"TURNING...", 12);
+    } else {
+        OLED_ShowString(0, 48, (u8 *)"IDLE  #", 12);
+        /* 显示已完成的转弯次数 */
+        u8 digits[4];
+        digits[0] = '0' + (turn_count / 100) % 10;
+        digits[1] = '0' + (turn_count / 10)  % 10;
+        digits[2] = '0' + (turn_count)       % 10;
+        digits[3] = '\0';
+        OLED_ShowString(72, 48, digits, 12);
+    }
 
     OLED_Refresh();
 }
@@ -123,36 +150,47 @@ int main(void)
 {
     SYSCFG_DL_init();
 
-    /* ---- OLED 初始化 ---- */
+    /* ---- 外设模块初始化 ---- */
     OLED_Init();
     OLED_Clear();
-    OLED_ShowString(0, 16, (u8 *)"MEMS Gyro", 24);
+    OLED_ShowString(0, 8,  (u8 *)"Diff Turn", 24);
+    OLED_ShowString(0, 48, (u8 *)"Init...", 12);
     OLED_Refresh();
     delay_ms(800);
 
-    /* ---- 陀螺仪解析模块初始化 (UART 已由 SYSCFG_DL_init 配置) ---- */
+    Motor_Init();
     GYRO_Init();
+    Turn_Init();
 
     /* ---- 首次刷新显示 ---- */
     display_update();
 
     /* ---- 主循环 ---- */
     while (1) {
-        /* 高频轮询 UART, 处理所有收到的字节 */
+        /* 高频轮询 UART, 更新陀螺仪数据 */
         GYRO_Poll();
 
+        /* 转弯状态机驱动 (必须在 GYRO_Poll 之后) */
+        Turn_Task();
+
         /*
-         * 每 100ms 刷新一次 OLED 显示。
-         * 放在 GYRO_Poll() 之后, 确保先处理完所有积压数据再刷新。
-         *
-         * 由于 delay_ms 是阻塞的, 我们不在这里调用它;
-         * 而是用 GYRO_Poll 的空闲迭代次数来粗略计时。
-         * 这里采用一个简单计数器来近似 100ms 间隔:
-         *   主循环每次迭代约 1~5us (无数据时),
-         *   50000 次 ≈ 50~250ms, 取折中 50000 次。
+         * 自动测试: 小车空闲时启动新一轮 90° 直角转弯。
+         * idle_timer 仅在空闲时累加, 转弯过程中不计数,
+         * 因此转弯完成后才会启动下一轮倒计时。
          */
+        if (!Turn_IsBusy()) {
+            if (++idle_timer >= TURN_INTERVAL_CNT) {
+                idle_timer = 0;
+                Turn_Start(90);         /* 顺时针直角转弯 */
+                turn_count++;
+            }
+        } else {
+            idle_timer = 0;             /* 转弯中, 重置空闲计时器 */
+        }
+
+        /* 定期刷新 OLED 显示 */
         static uint32_t loop_cnt = 0;
-        if (++loop_cnt >= 50000) {
+        if (++loop_cnt >= DISPLAY_LOOP_CNT) {
             loop_cnt = 0;
             display_update();
         }
