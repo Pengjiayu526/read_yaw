@@ -50,6 +50,7 @@ SYSCONFIG_WEAK void SYSCFG_DL_init(void)
     SYSCFG_DL_GPIO_init();
     /* Module-Specific Initializations*/
     SYSCFG_DL_SYSCTL_init();
+    SYSCFG_DL_PWM_0_init();
     SYSCFG_DL_OLED_init();
     SYSCFG_DL_UART_2_init();
     SYSCFG_DL_UART_0_init();
@@ -62,6 +63,7 @@ SYSCONFIG_WEAK void SYSCFG_DL_initPower(void)
 {
     DL_GPIO_reset(GPIOA);
     DL_GPIO_reset(GPIOB);
+    DL_TimerG_reset(PWM_0_INST);
     DL_I2C_reset(OLED_INST);
     DL_UART_Main_reset(UART_2_INST);
     DL_UART_Main_reset(UART_0_INST);
@@ -69,6 +71,7 @@ SYSCONFIG_WEAK void SYSCFG_DL_initPower(void)
 
     DL_GPIO_enablePower(GPIOA);
     DL_GPIO_enablePower(GPIOB);
+    DL_TimerG_enablePower(PWM_0_INST);
     DL_I2C_enablePower(OLED_INST);
     DL_UART_Main_enablePower(UART_2_INST);
     DL_UART_Main_enablePower(UART_0_INST);
@@ -78,6 +81,11 @@ SYSCONFIG_WEAK void SYSCFG_DL_initPower(void)
 
 SYSCONFIG_WEAK void SYSCFG_DL_GPIO_init(void)
 {
+
+    DL_GPIO_initPeripheralOutputFunction(GPIO_PWM_0_C0_IOMUX,GPIO_PWM_0_C0_IOMUX_FUNC);
+    DL_GPIO_enableOutput(GPIO_PWM_0_C0_PORT, GPIO_PWM_0_C0_PIN);
+    DL_GPIO_initPeripheralOutputFunction(GPIO_PWM_0_C1_IOMUX,GPIO_PWM_0_C1_IOMUX_FUNC);
+    DL_GPIO_enableOutput(GPIO_PWM_0_C1_PORT, GPIO_PWM_0_C1_PIN);
 
     DL_GPIO_initPeripheralInputFunctionFeatures(GPIO_OLED_IOMUX_SDA,
         GPIO_OLED_IOMUX_SDA_FUNC, DL_GPIO_INVERSION_DISABLE,
@@ -119,6 +127,59 @@ SYSCONFIG_WEAK void SYSCFG_DL_SYSCTL_init(void)
     DL_SYSCTL_disableSYSPLL();
     DL_SYSCTL_setULPCLKDivider(DL_SYSCTL_ULPCLK_DIV_1);
     DL_SYSCTL_setMCLKDivider(DL_SYSCTL_MCLK_DIVIDER_DISABLE);
+
+}
+
+
+/*
+ * Timer clock configuration to be sourced by  / 1 (32000000 Hz)
+ * timerClkFreq = (timerClkSrc / (timerClkDivRatio * (timerClkPrescale + 1)))
+ *   1280000 Hz = 32000000 Hz / (1 * (24 + 1))
+ */
+static const DL_TimerG_ClockConfig gPWM_0ClockConfig = {
+    .clockSel = DL_TIMER_CLOCK_BUSCLK,
+    .divideRatio = DL_TIMER_CLOCK_DIVIDE_1,
+    .prescale = 24U
+};
+
+static const DL_TimerG_PWMConfig gPWM_0Config = {
+    .pwmMode = DL_TIMER_PWM_MODE_EDGE_ALIGN,
+    .period = 128,
+    .isTimerWithFourCC = true,
+    .startTimer = DL_TIMER_STOP,
+};
+
+SYSCONFIG_WEAK void SYSCFG_DL_PWM_0_init(void) {
+
+    DL_TimerG_setClockConfig(
+        PWM_0_INST, (DL_TimerG_ClockConfig *) &gPWM_0ClockConfig);
+
+    DL_TimerG_initPWMMode(
+        PWM_0_INST, (DL_TimerG_PWMConfig *) &gPWM_0Config);
+
+    // Set Counter control to the smallest CC index being used
+    DL_TimerG_setCounterControl(PWM_0_INST,DL_TIMER_CZC_CCCTL0_ZCOND,DL_TIMER_CAC_CCCTL0_ACOND,DL_TIMER_CLC_CCCTL0_LCOND);
+
+    DL_TimerG_setCaptureCompareOutCtl(PWM_0_INST, DL_TIMER_CC_OCTL_INIT_VAL_LOW,
+		DL_TIMER_CC_OCTL_INV_OUT_DISABLED, DL_TIMER_CC_OCTL_SRC_FUNCVAL,
+		DL_TIMERG_CAPTURE_COMPARE_0_INDEX);
+
+    DL_TimerG_setCaptCompUpdateMethod(PWM_0_INST, DL_TIMER_CC_UPDATE_METHOD_IMMEDIATE, DL_TIMERG_CAPTURE_COMPARE_0_INDEX);
+    DL_TimerG_setCaptureCompareValue(PWM_0_INST, 0, DL_TIMER_CC_0_INDEX);
+
+    DL_TimerG_setCaptureCompareOutCtl(PWM_0_INST, DL_TIMER_CC_OCTL_INIT_VAL_LOW,
+		DL_TIMER_CC_OCTL_INV_OUT_DISABLED, DL_TIMER_CC_OCTL_SRC_FUNCVAL,
+		DL_TIMERG_CAPTURE_COMPARE_1_INDEX);
+
+    DL_TimerG_setCaptCompUpdateMethod(PWM_0_INST, DL_TIMER_CC_UPDATE_METHOD_IMMEDIATE, DL_TIMERG_CAPTURE_COMPARE_1_INDEX);
+    DL_TimerG_setCaptureCompareValue(PWM_0_INST, 0, DL_TIMER_CC_1_INDEX);
+
+    DL_TimerG_enableClock(PWM_0_INST);
+
+
+    
+    DL_TimerG_setCCPDirection(PWM_0_INST , DL_TIMER_CC0_OUTPUT | DL_TIMER_CC1_OUTPUT );
+
 
 }
 

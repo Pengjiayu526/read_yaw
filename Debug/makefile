@@ -15,7 +15,9 @@ ORDERED_OBJS += \
 "./ti_msp_dl_config.o" \
 "./startup_mspm0g350x_ticlang.o" \
 "./gyro.o" \
+"./motor.o" \
 "./oled.o" \
+"./turn.o" \
 $(GEN_CMDS__FLAG) \
 -Wl,-ldevice.cmd.genlibs \
 -Wl,-llibc.a \
@@ -119,28 +121,28 @@ endif
 
 # Add inputs and outputs from these tool invocations to the build variables 
 EXE_OUTPUTS += \
-read_yaw.out 
+turn.out 
 
 EXE_OUTPUTS__QUOTED += \
-"read_yaw.out" 
+"turn.out" 
 
 
 # All Target
 all: $(OBJS) $(GEN_CMDS)
-	@$(MAKE) --no-print-directory -Onone "read_yaw.out"
+	@$(MAKE) --no-print-directory -Onone "turn.out"
 
 # Tool invocations
-read_yaw.out: $(OBJS) $(GEN_CMDS)
+turn.out: $(OBJS) $(GEN_CMDS)
 	@echo 'Arm Linker - building target: "$@"'
-	"D:/ti/ccs2050/ccs/tools/compiler/ti-cgt-armllvm_4.0.4.LTS/bin/tiarmclang.exe" @"device.opt"  -march=thumbv6m -mcpu=cortex-m0plus -mfloat-abi=soft -mlittle-endian -mthumb -O2 -gdwarf-3 -Wall -Wl,-m"read_yaw.map" -Wl,-i"D:/ti/mspm0_sdk_2_10_00_04/source" -Wl,-i"C:/Users/hp/workspace_ccstheia/read_yaw" -Wl,-i"C:/Users/hp/workspace_ccstheia/read_yaw/Debug/syscfg" -Wl,-i"D:/ti/ccs2050/ccs/tools/compiler/ti-cgt-armllvm_4.0.4.LTS/lib" -Wl,--diag_wrap=off -Wl,--display_error_number -Wl,--warn_sections -Wl,--xml_link_info="read_yaw_linkInfo.xml" -Wl,--rom_model -o "read_yaw.out" $(ORDERED_OBJS)
+	"D:/ti/ccs2050/ccs/tools/compiler/ti-cgt-armllvm_4.0.4.LTS/bin/tiarmclang.exe" @"device.opt"  -march=thumbv6m -mcpu=cortex-m0plus -mfloat-abi=soft -mlittle-endian -mthumb -O2 -gdwarf-3 -Wall -Wl,-m"turn.map" -Wl,-i"D:/ti/mspm0_sdk_2_10_00_04/source" -Wl,-i"C:/Users/hp/workspace_ccstheia/turn" -Wl,-i"C:/Users/hp/workspace_ccstheia/turn/Debug/syscfg" -Wl,-i"D:/ti/ccs2050/ccs/tools/compiler/ti-cgt-armllvm_4.0.4.LTS/lib" -Wl,--diag_wrap=off -Wl,--display_error_number -Wl,--warn_sections -Wl,--xml_link_info="turn_linkInfo.xml" -Wl,--rom_model -o "turn.out" $(ORDERED_OBJS)
 	@echo 'Finished building target: "$@"'
 	@echo ' '
 
 # Other Targets
 clean:
 	-$(RM) $(GEN_MISC_FILES__QUOTED)$(GEN_FILES__QUOTED)$(EXE_OUTPUTS__QUOTED)
-	-$(RM) "delay.o" "empty.o" "ti_msp_dl_config.o" "startup_mspm0g350x_ticlang.o" "gyro.o" "oled.o" 
-	-$(RM) "delay.d" "empty.d" "ti_msp_dl_config.d" "startup_mspm0g350x_ticlang.d" "gyro.d" "oled.d" 
+	-$(RM) "delay.o" "empty.o" "ti_msp_dl_config.o" "startup_mspm0g350x_ticlang.o" "gyro.o" "motor.o" "oled.o" "turn.o" 
+	-$(RM) "delay.d" "empty.d" "ti_msp_dl_config.d" "startup_mspm0g350x_ticlang.d" "gyro.d" "motor.d" "oled.d" "turn.d" 
 	-@echo ' '
 
 .PHONY: all clean dependents
