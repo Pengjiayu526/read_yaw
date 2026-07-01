@@ -48,7 +48,7 @@
  * 转弯间隔: 600,000 次 × 4 us ≈ 2.4 s。
  */
 #define DISPLAY_LOOP_CNT   50000    /* 显示刷新迭代间隔 */
-#define TURN_INTERVAL_CNT 600000    /* 两次转弯之间的迭代间隔 (~2~3s) */
+#define TURN_INTERVAL_CNT 100000    /* 两次转弯之间的迭代间隔 (~1s) */
 
 /* ---- 测试阶段 ---- */
 static int       turn_count  = 0;   /* 已完成转弯次数 */
