@@ -11,6 +11,7 @@
  */
 const GPIO    = scripting.addModule("/ti/driverlib/GPIO", {}, false);
 const GPIO1   = GPIO.addInstance();
+const GPIO2   = GPIO.addInstance();
 const I2C     = scripting.addModule("/ti/driverlib/I2C", {}, false);
 const I2C1    = I2C.addInstance();
 const PWM     = scripting.addModule("/ti/driverlib/PWM", {}, false);
@@ -30,6 +31,46 @@ GPIO1.associatedPins[0].$name       = "PIN_22";
 GPIO1.associatedPins[0].assignedPin = "22";
 
 const Board = scripting.addModule("/ti/driverlib/Board", {}, false);
+
+GPIO2.$name                          = "Grays";
+GPIO2.port                           = "PORTB";
+GPIO2.associatedPins.create(12);
+GPIO2.associatedPins[0].$name        = "PIN_0";
+GPIO2.associatedPins[0].direction    = "INPUT";
+GPIO2.associatedPins[0].pin.$assign  = "PB0";
+GPIO2.associatedPins[1].$name        = "PIN_1";
+GPIO2.associatedPins[1].direction    = "INPUT";
+GPIO2.associatedPins[1].pin.$assign  = "PB1";
+GPIO2.associatedPins[2].$name        = "PIN_2";
+GPIO2.associatedPins[2].direction    = "INPUT";
+GPIO2.associatedPins[2].pin.$assign  = "PB2";
+GPIO2.associatedPins[3].$name        = "PIN_3";
+GPIO2.associatedPins[3].direction    = "INPUT";
+GPIO2.associatedPins[3].pin.$assign  = "PB3";
+GPIO2.associatedPins[4].$name        = "PIN_4";
+GPIO2.associatedPins[4].direction    = "INPUT";
+GPIO2.associatedPins[4].pin.$assign  = "PB4";
+GPIO2.associatedPins[5].$name        = "PIN_5";
+GPIO2.associatedPins[5].direction    = "INPUT";
+GPIO2.associatedPins[5].pin.$assign  = "PB5";
+GPIO2.associatedPins[6].$name        = "PIN_6";
+GPIO2.associatedPins[6].direction    = "INPUT";
+GPIO2.associatedPins[6].pin.$assign  = "PB6";
+GPIO2.associatedPins[7].$name        = "PIN_7";
+GPIO2.associatedPins[7].direction    = "INPUT";
+GPIO2.associatedPins[7].pin.$assign  = "PB7";
+GPIO2.associatedPins[8].$name        = "PIN_8";
+GPIO2.associatedPins[8].direction    = "INPUT";
+GPIO2.associatedPins[8].pin.$assign  = "PB8";
+GPIO2.associatedPins[9].$name        = "PIN_9";
+GPIO2.associatedPins[9].direction    = "INPUT";
+GPIO2.associatedPins[9].pin.$assign  = "PB9";
+GPIO2.associatedPins[10].$name       = "PIN_10";
+GPIO2.associatedPins[10].direction   = "INPUT";
+GPIO2.associatedPins[10].pin.$assign = "PB10";
+GPIO2.associatedPins[11].$name       = "PIN_11";
+GPIO2.associatedPins[11].direction   = "INPUT";
+GPIO2.associatedPins[11].pin.$assign = "PB11";
 
 I2C1.$name                             = "OLED";
 I2C1.basicEnableController             = true;
