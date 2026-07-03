@@ -9,6 +9,7 @@ SYSCFG_SRCS += \
 ../empty.syscfg 
 
 C_SRCS += \
+../corner.c \
 ../delay.c \
 ../empty.c \
 ./ti_msp_dl_config.c \
@@ -30,6 +31,7 @@ GEN_FILES += \
 ./ti_msp_dl_config.c 
 
 C_DEPS += \
+./corner.d \
 ./delay.d \
 ./empty.d \
 ./ti_msp_dl_config.d \
@@ -46,6 +48,7 @@ GEN_OPTS += \
 ./device.opt 
 
 OBJS += \
+./corner.o \
 ./delay.o \
 ./empty.o \
 ./ti_msp_dl_config.o \
@@ -64,6 +67,7 @@ GEN_MISC_FILES += \
 ./Event.dot 
 
 OBJS__QUOTED += \
+"corner.o" \
 "delay.o" \
 "empty.o" \
 "ti_msp_dl_config.o" \
@@ -82,6 +86,7 @@ GEN_MISC_FILES__QUOTED += \
 "Event.dot" 
 
 C_DEPS__QUOTED += \
+"corner.d" \
 "delay.d" \
 "empty.d" \
 "ti_msp_dl_config.d" \
@@ -100,6 +105,7 @@ GEN_FILES__QUOTED += \
 "ti_msp_dl_config.c" 
 
 C_SRCS__QUOTED += \
+"../corner.c" \
 "../delay.c" \
 "../empty.c" \
 "./ti_msp_dl_config.c" \

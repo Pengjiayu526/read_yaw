@@ -1,3 +1,4 @@
+"./corner.o"
 "./delay.o"
 "./empty.o"
 "./ti_msp_dl_config.o"

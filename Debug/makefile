@@ -10,6 +10,7 @@ GEN_OPTS__FLAG := @"./device.opt"
 GEN_CMDS__FLAG := -Wl,-l"./device_linker.cmd" 
 
 ORDERED_OBJS += \
+"./corner.o" \
 "./delay.o" \
 "./empty.o" \
 "./ti_msp_dl_config.o" \
@@ -144,8 +145,8 @@ SquareRun3.out: $(OBJS) $(GEN_CMDS)
 # Other Targets
 clean:
 	-$(RM) $(GEN_MISC_FILES__QUOTED)$(GEN_FILES__QUOTED)$(EXE_OUTPUTS__QUOTED)
-	-$(RM) "delay.o" "empty.o" "ti_msp_dl_config.o" "startup_mspm0g350x_ticlang.o" "grayscale.o" "gyro.o" "motor.o" "oled.o" "pid.o" "turn.o" "usart.o" 
-	-$(RM) "delay.d" "empty.d" "ti_msp_dl_config.d" "startup_mspm0g350x_ticlang.d" "grayscale.d" "gyro.d" "motor.d" "oled.d" "pid.d" "turn.d" "usart.d" 
+	-$(RM) "corner.o" "delay.o" "empty.o" "ti_msp_dl_config.o" "startup_mspm0g350x_ticlang.o" "grayscale.o" "gyro.o" "motor.o" "oled.o" "pid.o" "turn.o" "usart.o" 
+	-$(RM) "corner.d" "delay.d" "empty.d" "ti_msp_dl_config.d" "startup_mspm0g350x_ticlang.d" "grayscale.d" "gyro.d" "motor.d" "oled.d" "pid.d" "turn.d" "usart.d" 
 	-@echo ' '
 
 .PHONY: all clean dependents
